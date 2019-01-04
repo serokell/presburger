@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, PatternGuards, Trustworthy #-}
+{-# LANGUAGE BangPatterns, PatternGuards, Safe #-}
 {-|
 This module implements a decision procedure for quantifier-free linear
 arithmetic.  The algorithm is based on the following paper:
@@ -40,9 +40,6 @@ module Data.Integer.SAT
   , Bound(..)
   , tConst
   ) where
-
-import Debug.Trace
-
 import           Control.Applicative (Alternative (..), Applicative (..), (<$>))
 import           Control.Monad       (MonadPlus (..), ap, guard, liftM)
 import           Data.List           (partition)
@@ -882,9 +879,9 @@ instance Show Term where
 ppTerm :: Term -> Doc
 ppTerm (T k m) =
   case Map.toList m of
-    []     -> integer k
+    []              -> integer k
     xs     | k /= 0 -> hsep (integer k : map ppProd xs)
-    x : xs -> hsep (ppFst x   : map ppProd xs)
+    x : xs          -> hsep (ppFst x   : map ppProd xs)
 
   where
   ppFst (x,1)  = ppName x
@@ -955,7 +952,7 @@ tFactor (T c m) =
 
 -- | Extract a variable with a coefficient whose absolute value is minimal.
 tLeastAbsCoeff :: Term -> Maybe (Integer, Name, Term)
-tLeastAbsCoeff (T c m) = do (xc,x,m1) <- Map.foldWithKey step Nothing m
+tLeastAbsCoeff (T c m) = do (xc,x,m1) <- Map.foldrWithKey step Nothing m
                             return (xc, x, T c m1)
   where
   step x xc Nothing   = Just (xc, x, Map.delete x m)
