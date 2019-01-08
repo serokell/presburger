@@ -133,7 +133,7 @@ data Prop = PTrue
           | Expr :>  Expr
           | Expr :<= Expr
           | Expr :>= Expr
-            deriving (Read,Show)
+            deriving (Read,Show,Ord, Eq)
 
 -- | The type of integer expressions.
 -- Variable names must be non-negative.
@@ -146,7 +146,7 @@ data Expr = Expr :+ Expr          -- ^ Addition
           | If Prop Expr Expr     -- ^ A conditional expression
           | Div Expr Integer      -- ^ Division, rounds down
           | Mod Expr Integer      -- ^ Non-negative remainder
-            deriving (Read,Show)
+            deriving (Read,Show, Ord, Eq)
 
 prop :: Prop -> S ()
 prop PTrue       = return ()
