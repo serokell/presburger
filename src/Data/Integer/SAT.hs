@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, PatternGuards, Safe #-}
+{-# LANGUAGE CPP, BangPatterns, PatternGuards, Trustworthy #-}
 {-|
 This module implements a decision procedure for quantifier-free linear
 arithmetic.  The algorithm is based on the following paper:
@@ -40,6 +40,9 @@ module Data.Integer.SAT
   , Bound(..)
   , tConst
   ) where
+
+import Debug.Trace
+
 import           Control.Applicative (Alternative (..), Applicative (..), (<$>))
 import           Control.Monad       (MonadPlus (..), ap, guard, liftM)
 import           Data.List           (partition)
@@ -133,7 +136,7 @@ data Prop = PTrue
           | Expr :>  Expr
           | Expr :<= Expr
           | Expr :>= Expr
-            deriving (Read,Show,Ord, Eq)
+            deriving (Read,Show)
 
 -- | The type of integer expressions.
 -- Variable names must be non-negative.
@@ -146,7 +149,7 @@ data Expr = Expr :+ Expr          -- ^ Addition
           | If Prop Expr Expr     -- ^ A conditional expression
           | Div Expr Integer      -- ^ Division, rounds down
           | Mod Expr Integer      -- ^ Non-negative remainder
-            deriving (Read,Show, Ord, Eq)
+            deriving (Read,Show)
 
 prop :: Prop -> S ()
 prop PTrue       = return ()
@@ -703,7 +706,10 @@ toList a = go a []
 
 instance Monad Answer where
   return a           = One a
+#if __GLASGOW_HASKELL__ >= 807
+#else
   fail _             = None
+#endif
   None >>= _         = None
   One a >>= k        = k a
   Choice m1 m2 >>= k = mplus (m1 >>= k) (m2 >>= k)
@@ -879,9 +885,9 @@ instance Show Term where
 ppTerm :: Term -> Doc
 ppTerm (T k m) =
   case Map.toList m of
-    []              -> integer k
+    []     -> integer k
     xs     | k /= 0 -> hsep (integer k : map ppProd xs)
-    x : xs          -> hsep (ppFst x   : map ppProd xs)
+    x : xs -> hsep (ppFst x   : map ppProd xs)
 
   where
   ppFst (x,1)  = ppName x
